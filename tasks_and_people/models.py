@@ -7,9 +7,10 @@ class Person(models.Model):
     phoneNumber = models.CharField(max_length=20)
 
 class Task(models.Model):
-    id = models.IntegerField(primary_key=True)
-    name = models.CharField(max_length=20)
-    phoneNumber = models.CharField(max_length=20)
+    id = models.IntegerField(primary_key=True) #TODO check if indeed primary field
+    isDone = models.BooleanField(default=False)
+    description = models.CharField(max_length=200)
+    dueDate = models.DateField()
 
 # Create your models here.
 # TODO remove this user, not integrated well with django
