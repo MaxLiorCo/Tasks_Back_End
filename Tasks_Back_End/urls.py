@@ -21,7 +21,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('people/', views.manage_users),
     path('people/<int:id>', views.get_person),
-    path('people/', views.manage_users),
-
-
 ]
