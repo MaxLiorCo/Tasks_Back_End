@@ -16,12 +16,12 @@ def manage_users(request):
 
 @require_http_methods(["GET", "DELETE"])
 def get_or_delete_person(request):
+    user_id = request.GET.get('id')  # I HAVE NO CLUE IF THIS WILL WORK
     if request.method == 'GET':
-        # TODO
-        None
+        return Person.objects.get(id=user_id)   # Should return the person that was requested
     elif request.method == 'DELETE':
-        # TODO
-        None
+        Person.objects.get(id=user_id).delete()
+
 
 @require_http_methods(["GET", "POST"])
 def manage_tasks(request):
