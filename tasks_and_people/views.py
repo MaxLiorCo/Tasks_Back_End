@@ -3,9 +3,12 @@ from django.views.decorators.http import require_http_methods
 from tasks_and_people.models import Person, Task
 from django.core.serializers import serialize
 from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+
 
 
 @require_http_methods(["GET", "POST"])
+@csrf_exempt
 def manage_users(request):
     if request.method == 'GET':
         all_queries = Person.objects.all()
