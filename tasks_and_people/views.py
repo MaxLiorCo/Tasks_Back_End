@@ -24,8 +24,10 @@ def get_or_delete_person(request):
 def manage_tasks(request):
     if request.method == 'GET':
         # TODO
+        None
     elif request.method == 'POST':
         # TODO
+        None
 
 @require_http_methods(["PUT"])
 def set_task_owner(request):
