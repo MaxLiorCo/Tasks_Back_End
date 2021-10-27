@@ -18,7 +18,6 @@ from django.urls import path
 from tasks_and_people import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('people/', views.manage_users),                        # Either 'GET' or 'POST'
     path('people/<int:id>', views.get_or_delete_person),        # 'GET', 'DELETE'
     path('people/<int:id>/tasks', views.manage_tasks),

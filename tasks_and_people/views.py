@@ -7,7 +7,7 @@ def manage_users(request):
     if request.method == 'GET':
         all_entries = Person.objects.all()
         return all_entries.values()         # JSON representation
-    elif request.method == 'SET':
+    elif request.method == 'POST':
         request_body = request.body()
         p = Person(id=request_body.id, name=request_body.name, email=request_body.email,
                    favoriteProgrammingLanguage=request_body.favoriteProgrammingLanguage)
@@ -24,8 +24,10 @@ def get_or_delete_person(request):
 def manage_tasks(request):
     if request.method == 'GET':
         # TODO
+        None
     elif request.method == 'POST':
         # TODO
+        None
 
 @require_http_methods(["PUT"])
 def set_task_owner(request):
