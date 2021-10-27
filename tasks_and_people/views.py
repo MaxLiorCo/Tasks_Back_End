@@ -14,11 +14,14 @@ def manage_users(request):
         p.save()
 
 
-@require_http_methods(["GET", 'DELETE'])
+@require_http_methods(["GET", "DELETE"])
 def get_or_delete_person(request):
     if request.method == 'GET':
-    # TODO
+        # TODO
+        None
     elif request.method == 'DELETE':
+        # TODO
+        None
 
 @require_http_methods(["GET", "POST"])
 def manage_tasks(request):
