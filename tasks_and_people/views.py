@@ -14,7 +14,7 @@ def manage_users(request):
         p.save()
 
 
-@require_http_methods(["GET", 'DELETE'])
+@require_http_methods(["GET", "DELETE"])
 def get_or_delete_person(request):
     user_id = request.GET.get('id')  # I HAVE NO CLUE IF THIS WILL WORK
     if request.method == 'GET':
