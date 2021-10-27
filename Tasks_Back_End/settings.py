@@ -45,10 +45,10 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsPostCsrfMiddleware',
     "django.middleware.csrf.CsrfViewMiddleware",
+    "corsheaders.middleware.CorsPostCsrfMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    #'django.middleware.common.CommonMiddleware',   ALREADY ABOVE
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -62,7 +62,10 @@ CORS_ALLOWED_ORIGINS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "https://reqbin.com",
+    "http://mbarsinai.com",
+    "http://localhost:9000",
 ]
+CORS_REPLACE_HTTPS_REFERER = True
 
 #ROOT_URLCONF = 'tasks_and_people.urls'
 ROOT_URLCONF = 'Tasks_Back_End.urls'
