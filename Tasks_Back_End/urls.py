@@ -19,6 +19,10 @@ from tasks_and_people import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('people/', views.manage_users),
-    path('people/<int:id>', views.get_person),
+    path('people/', views.manage_users),            # Either 'GET' or 'POST'
+    path('people/<int:id>', views.get_or_delete_person),      # 'GET', 'DELETE'
+    path('people/<int:id>/tasks', views.manage_tasks),
+    path('tasks/<int:id>/owner', views.set_task_owner),
+    path('tasks/<int:id>/isDone', views.set_task_status),
+    path('tasks/<int:id>', views.patch_task),
 ]
