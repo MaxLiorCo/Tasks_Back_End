@@ -13,10 +13,10 @@ import json
 def manage_users(request):
     if request.method == 'GET':
         all_queries = Person.objects.all()
-        data = serialize("json", all_queries)       # JSON representation
+        data = serialize("json", all_queries)  # JSON representation
         return JsonResponse(data, safe=False)
     elif request.method == 'POST':
-        tmp_str = request.body.decode('utf-8')      # Basically converts "bytes" to "string"
+        tmp_str = request.body.decode('utf-8')  # Basically converts "bytes" to "string"
         # TODO
         """
         There is a problem here - the uniqueness of the 'id' isn't preserved for some reason.
@@ -24,8 +24,9 @@ def manage_users(request):
         no errors are thrown, and the old person fields are replaced with the new values of the new one.
         """
         try:
-            data_received = json.loads(tmp_str)     # Converts "string" to "json" object
+            data_received = json.loads(tmp_str)  # Converts "string" to "json" object
             p = Person(id=data_received["id"],
+                       title=data_received["title"],
                        name=data_received["name"],
                        email=data_received["emails"],
                        favoriteProgrammingLanguage=data_received["favoriteProgrammingLanguage"],
@@ -34,7 +35,7 @@ def manage_users(request):
             p.save()
         except (KeyError, json.decoder.JSONDecodeError):
             return HttpResponse('Required data fields are missing, data makes no sense, or data contains illegal '
-                                'values.', 
+                                'values.',
                                 status=400)
         except IntegrityError as e:
             if 'UNIQUE constraint' in str(e.args):
@@ -46,7 +47,7 @@ def manage_users(request):
             return resp
 
 
-@require_http_methods(["GET", "DELETE"])
+@require_http_methods(["GET", "DELETE", "PATCH"])
 @csrf_exempt
 def get_or_delete_person(request, id):
     try:
@@ -55,15 +56,31 @@ def get_or_delete_person(request, id):
         return HttpResponse("Person with id: {0} does not exist.".format(id),
                             status=404)
     if request.method == 'GET':
-        return JsonResponse(serialize("json", [p]), safe=False, status=200)   # Should return the person that was requested
+        return JsonResponse(serialize("json", [p]), safe=False,
+                            status=200)  # Should return the person that was requested
     elif request.method == 'DELETE':
         p.delete()
         return HttpResponse("Person with id: {0} was deleted successfully.".format(id))
+    elif request.method == "PATCH":
+        try:
+            body_json_format = json.loads(request.body.decode("utf-8"))
+        except json.decoder.JSONDecodeError:
+            return HttpResponse('Required data fields are missing, data makes no sense, or data contains illegal '
+                                'values.',
+                                status=400)
+        p.name = body_json_format["name"] if "name" in body_json_format else p.name
+        p.email = body_json_format["email"] if "email" in body_json_format else p.email
+        p.favoriteProgrammingLanguage = body_json_format[
+            "favoriteProgrammingLanguage"] if "favoriteProgrammingLanguage" in body_json_format else p.favoriteProgrammingLanguage
+        p.activeTaskCount = body_json_format[
+            "activeTaskCount"] if "activeTaskCount" in body_json_format else p.activeTaskCount
+        p.save()
+        return JsonResponse(serialize('json', [p]), safe=False, status=200)
 
 
 @require_http_methods(["GET", "POST"])
 @csrf_exempt
-def manage_tasks(request, id):
+def person_task_details(request, id):
     try:
         p = Person.objects.get(id=id)
     except Person.DoesNotExist:
@@ -85,9 +102,14 @@ def manage_tasks(request, id):
         tmp_str = request.body.decode('utf-8')
         json_body = json.loads(tmp_str)
         received_status = "status" in json_body
-        is_done = False if not received_status else json_body["status"] == "done"        # New task status set to active by default.
+        is_done = False if not received_status else json_body[
+                                                        "status"] == "done"  # New task status set to active by default.
+        if not is_done:
+            p.activeTaskCount += 1
+            p.save(update_fields=["activeTaskCount"])
         try:
             t = Task(id=json_body["id"],
+                     title=json_body["title"],
                      owner=p,
                      isDone=is_done,
                      details=json_body["details"],
@@ -108,22 +130,26 @@ def manage_tasks(request, id):
 
 @require_http_methods(["GET", "PUT"])
 @csrf_exempt
-def set_task_owner(request, id):
+def set_or_get_task_owner(request, id):
+    try:
+        t = Task.objects.get(id=id)
+        p = Person.objects.get(id=t.owner.id)
+    except Task.DoesNotExist:
+        return HttpResponse("Task with id: {0} does not exist.".format(id),
+                            status=404
+                            )
     if request.method == "GET":
-        try:
-            t = Task.objects.get(id=id)
-            p = Person.objects.get(id=t.owner.id)
-            return HttpResponse("Owner's id: {0}".format(p.id))
-        except Task.DoesNotExist:
-            return HttpResponse("Task with id: {0} does not exist.".format(id),
-                                status=404
-                                )
+        return HttpResponse("Owner's id: {0}".format(p.id))
     elif request.method == "PUT":
         try:
             json_body = json.loads(request.body.decode('utf-8'))
-            p = Person.objects.get(id=json_body["id"])
+            new_owner = Person.objects.get(id=json_body["id"])
             t = Task.objects.get(id=id)
-            t.owner = p
+            t.owner = new_owner
+            new_owner.activeTaskCount = new_owner.activeTaskCount + 1 if not t.isDone else new_owner.activeTaskCount
+            p.activeTaskCount = p.activeTaskCount - 1 if not t.isDone else p.activeTaskCount
+            p.save(update_fields=["activeTaskCount"])
+            new_owner.save(update_fields=["activeTaskCount"])
             t.save(update_fields=["owner"])
             return HttpResponse("Task owner updated successfully.", status=204)
         except Person.DoesNotExist:
@@ -140,16 +166,99 @@ def set_task_owner(request, id):
                                 status=400)
 
 
-
-
-
-
-@require_http_methods(["PUT"])
+@require_http_methods(["GET", "PUT"])
 @csrf_exempt
-def set_task_status(request):
-    return None
+def set_or_get_task_status(request, id):
+    if request.method == "GET":
+        try:
+            t = Task.objects.get(id=id)
+            return HttpResponse("active" if t.isDone == False else "done", status=200)
+        except Task.DoesNotExist:
+            return HttpResponse("Task with id: {0} does not exist.".format(id),
+                                status=404
+                                )
+    elif request.method == "PUT":
+        try:
+            json_body = json.loads(request.body.decode('utf-8'))
+            new_status = json_body["status"]
+            if new_status != "active" and new_status != "done":
+                return HttpResponse("Value '{0}' is not legal task status.".format(new_status),
+                                    status=400
+                                    )
+            t = Task.objects.get(id=id)
+            p = Person.objects.get(id=t.owner.id)
+            new_is_done = True if new_status == "done" else False
+            # Safe check to make sure that the new value is different than the current one
+            if new_is_done != t.isDone:
+                if new_is_done:
+                    p.activeTaskCount += 1
+                else:
+                    p.activeTaskCount -= 1
+                p.save(update_fields=["activeTaskCount"])
+            t.isDone = new_status
+            t.save(update_fields=["isDone"])
+            return HttpResponse("Status for task id {0} changed to {1} successfully.".format(id, new_status))
+        except Task.DoesNotExist:
+            return HttpResponse("A task with id: {0} does not exist.".format(id),
+                                status=404
+                                )
+        except (KeyError, json.decoder.JSONDecodeError):
+            return HttpResponse('Required data fields are missing, data makes no sense, or data contains illegal '
+                                'values.',
+                                status=400)
 
-@require_http_methods(["PATCH"])
+
+@require_http_methods(["GET", "DELETE", "PATCH"])
 @csrf_exempt
-def patch_task(request):
-    return None
+def manage_tasks(request, task_id):
+    try:
+        t = Task.objects.get(id=task_id)
+        p = Person.objects.get(id=t.owner.id)
+    except Task.DoesNotExist:
+        return HttpResponse("A task with id: {0} does not exist.".format(task_id),
+                            status=404
+                            )
+    if request.method == "GET":
+        print(serialize("json", [t]))
+        return JsonResponse(serialize("json", [t]), safe=False, status=200)
+    elif request.method == "DELETE":
+        t.delete()
+        p.activeTaskCount -= 1
+        p.save(update_fields=["activeTaskCount"])
+        return HttpResponse("Task removed successfully.", status=200)
+    elif request.method == "PATCH":
+        try:
+            body_json_format = json.loads(request.body.decode("utf-8"))
+            t.title = body_json_format["title"] if "title" in body_json_format else t.title
+            t.details = body_json_format["details"] if "details" in body_json_format else t.details
+            t.dueDate = body_json_format["dueDate"] if "dueDate" in body_json_format else t.dueDate
+            # Handling owner change
+            if "ownerId" in body_json_format:
+                new_owner = Person.objects.get(id=body_json_format["ownerId"])
+                new_owner.activeTaskCount = new_owner.activeTaskCount + 1 if not t.isDone else new_owner.activeTaskCount
+                p.activeTaskCount = new_owner.activeTaskCount - 1 if not t.isDone else p.activeTaskCount
+                new_owner.save(update_fields=["activeTaskCount"])
+                p.save(update_fields=["activeTaskCount"])
+                t.owner = new_owner
+            # Handling task status
+            if "status" in body_json_format:
+                new_is_done = True if body_json_format["status"] == "done" else False
+                # Safe check to make sure that the new value is different than the current one
+                if new_is_done != t.isDone:
+                    if new_is_done:
+                        t.owner.activeTaskCount += 1
+                    else:
+                        t.owner.activeTaskCount -= 1
+                    t.owner.save(update_fields=["activeTaskCount"])
+                    t.isDone = new_is_done
+            # Pushing the updated task
+            t.save()
+            return JsonResponse(serialize('json', [t]), safe=False, status=200)
+        except Person.DoesNotExist:
+            return HttpResponse("Person with id: {0} does not exist.".format(body_json_format["id"]),
+                                status=404
+                                )
+        except json.decoder.JSONDecodeError:
+            return HttpResponse('Required data fields are missing, data makes no sense, or data contains illegal '
+                                'values.',
+                                status=400)
