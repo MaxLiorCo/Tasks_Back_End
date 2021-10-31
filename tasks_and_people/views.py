@@ -10,57 +10,44 @@ import json
 
 @require_http_methods(["GET", "POST"])
 @csrf_exempt
-def manage_users(request):
+def get_or_create_user(request):
     if request.method == 'GET':
         all_queries = Person.objects.all()
         data = serialize("json", all_queries)  # JSON representation
         return JsonResponse(data, safe=False)
     elif request.method == 'POST':
         tmp_str = request.body.decode('utf-8')  # Basically converts "bytes" to "string"
-        # TODO
-        """
-        There is a problem here - the uniqueness of the 'id' isn't preserved for some reason.
-        When adding a new person with id x and there's already a person with the same id in the db,
-        no errors are thrown, and the old person fields are replaced with the new values of the new one.
-        """
         try:
             data_received = json.loads(tmp_str)  # Converts "string" to "json" object
-            p = Person(id=data_received["id"],
-                       title=data_received["title"],
-                       name=data_received["name"],
+            p = Person(name=data_received["name"],
                        email=data_received["emails"],
                        favoriteProgrammingLanguage=data_received["favoriteProgrammingLanguage"],
-                       activeTaskCount=data_received["activeTaskCount"]
                        )
             p.save()
         except (KeyError, json.decoder.JSONDecodeError):
             return HttpResponse('Required data fields are missing, data makes no sense, or data contains illegal '
                                 'values.',
                                 status=400)
-        except IntegrityError as e:
-            if 'UNIQUE constraint' in str(e.args):
-                return HttpResponse('A person with this id already exists!', status=400)
-        else:
-            resp = HttpResponse('New person was created successfully.', status=201)
-            resp["Location"] = "http://127.0.0.1:9000/api/people/{0}".format(p.id)
-            resp["x-Created-Id"] = p.id
-            return resp
+        resp = HttpResponse('New person was created successfully.', status=201)
+        resp["Location"] = "http://127.0.0.1:9000/api/people/{0}".format(p.id)
+        resp["x-Created-Id"] = p.id
+        return resp
 
 
 @require_http_methods(["GET", "DELETE", "PATCH"])
 @csrf_exempt
-def get_or_delete_person(request, id):
+def manage_users(request, user_id):
     try:
-        p = Person.objects.get(id=id)
+        p = Person.objects.get(id=user_id)
     except Person.DoesNotExist:
-        return HttpResponse("Person with id: {0} does not exist.".format(id),
+        return HttpResponse("Person with id: {0} does not exist.".format(user_id),
                             status=404)
     if request.method == 'GET':
         return JsonResponse(serialize("json", [p]), safe=False,
                             status=200)  # Should return the person that was requested
     elif request.method == 'DELETE':
         p.delete()
-        return HttpResponse("Person with id: {0} was deleted successfully.".format(id))
+        return HttpResponse("Person with id: {0} was deleted successfully.".format(user_id))
     elif request.method == "PATCH":
         try:
             body_json_format = json.loads(request.body.decode("utf-8"))
@@ -80,11 +67,11 @@ def get_or_delete_person(request, id):
 
 @require_http_methods(["GET", "POST"])
 @csrf_exempt
-def person_task_details(request, id):
+def person_task_details(request, user_id):
     try:
-        p = Person.objects.get(id=id)
+        p = Person.objects.get(id=user_id)
     except Person.DoesNotExist:
-        return HttpResponse("Person with id: {0} does not exist.".format(id),
+        return HttpResponse("Person with id: {0} does not exist.".format(user_id),
                             status=404
                             )
     """
@@ -108,7 +95,7 @@ def person_task_details(request, id):
             p.activeTaskCount += 1
             p.save(update_fields=["activeTaskCount"])
         try:
-            t = Task(id=json_body["id"],
+            t = Task(
                      title=json_body["title"],
                      owner=p,
                      isDone=is_done,
@@ -123,19 +110,19 @@ def person_task_details(request, id):
         else:
             resp = HttpResponse("Task created and assigned successfully",
                                 status=201)
-            resp["Location"] = "http://127.0.0.1:9000/api/people/{0}/tasks".format(id)
-            resp["x-Created-Id"] = "{0}".format(t.id)
+            resp["Location"] = "http://127.0.0.1:9000/api/people/{0}/tasks".format(p.pk)
+            resp["x-Created-Id"] = "{0}".format(t.pk)
             return resp
 
 
 @require_http_methods(["GET", "PUT"])
 @csrf_exempt
-def set_or_get_task_owner(request, id):
+def set_or_get_task_owner(request, task_id):
     try:
-        t = Task.objects.get(id=id)
+        t = Task.objects.get(id=task_id)
         p = Person.objects.get(id=t.owner.id)
     except Task.DoesNotExist:
-        return HttpResponse("Task with id: {0} does not exist.".format(id),
+        return HttpResponse("Task with id: {0} does not exist.".format(task_id),
                             status=404
                             )
     if request.method == "GET":
@@ -144,7 +131,6 @@ def set_or_get_task_owner(request, id):
         try:
             json_body = json.loads(request.body.decode('utf-8'))
             new_owner = Person.objects.get(id=json_body["id"])
-            t = Task.objects.get(id=id)
             t.owner = new_owner
             new_owner.activeTaskCount = new_owner.activeTaskCount + 1 if not t.isDone else new_owner.activeTaskCount
             p.activeTaskCount = p.activeTaskCount - 1 if not t.isDone else p.activeTaskCount
@@ -156,10 +142,6 @@ def set_or_get_task_owner(request, id):
             return HttpResponse("Person with id: {0} does not exist.".format(json_body["id"]),
                                 status=404
                                 )
-        except Task.DoesNotExist:
-            return HttpResponse("Task with id: {0} does not exist.".format(id),
-                                status=404
-                                )
         except (KeyError, json.decoder.JSONDecodeError):
             return HttpResponse('Required data fields are missing, data makes no sense, or data contains illegal '
                                 'values.',
@@ -168,13 +150,13 @@ def set_or_get_task_owner(request, id):
 
 @require_http_methods(["GET", "PUT"])
 @csrf_exempt
-def set_or_get_task_status(request, id):
+def set_or_get_task_status(request, task_id):
     if request.method == "GET":
         try:
-            t = Task.objects.get(id=id)
+            t = Task.objects.get(id=task_id)
             return HttpResponse("active" if t.isDone == False else "done", status=200)
         except Task.DoesNotExist:
-            return HttpResponse("Task with id: {0} does not exist.".format(id),
+            return HttpResponse("Task with id: {0} does not exist.".format(task_id),
                                 status=404
                                 )
     elif request.method == "PUT":
@@ -185,7 +167,7 @@ def set_or_get_task_status(request, id):
                 return HttpResponse("Value '{0}' is not legal task status.".format(new_status),
                                     status=400
                                     )
-            t = Task.objects.get(id=id)
+            t = Task.objects.get(id=task_id)
             p = Person.objects.get(id=t.owner.id)
             new_is_done = True if new_status == "done" else False
             # Safe check to make sure that the new value is different than the current one
@@ -197,9 +179,9 @@ def set_or_get_task_status(request, id):
                 p.save(update_fields=["activeTaskCount"])
             t.isDone = new_status
             t.save(update_fields=["isDone"])
-            return HttpResponse("Status for task id {0} changed to {1} successfully.".format(id, new_status))
+            return HttpResponse("Status for task id {0} changed to {1} successfully.".format(task_id, new_status))
         except Task.DoesNotExist:
-            return HttpResponse("A task with id: {0} does not exist.".format(id),
+            return HttpResponse("A task with id: {0} does not exist.".format(task_id),
                                 status=404
                                 )
         except (KeyError, json.decoder.JSONDecodeError):

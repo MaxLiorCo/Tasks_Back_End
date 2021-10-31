@@ -17,10 +17,10 @@ from django.urls import path
 from tasks_and_people import views
 
 urlpatterns = [
-    path('people/', views.manage_users),                        # Either 'GET' or 'POST'
-    path('people/<int:id>', views.get_or_delete_person),        # 'GET', 'DELETE'
-    path('people/<int:id>/tasks', views.person_task_details),
-    path('tasks/<int:id>/owner', views.set_or_get_task_owner),
-    path('tasks/<int:id>/status', views.set_or_get_task_status),
+    path('people/', views.get_or_create_user),
+    path('people/<int:user_id>', views.manage_users),
+    path('people/<int:user_id>/tasks', views.person_task_details),
+    path('tasks/<int:task_id>/owner', views.set_or_get_task_owner),
+    path('tasks/<int:task_id>/status', views.set_or_get_task_status),
     path('tasks/<int:task_id>', views.manage_tasks),
 ]
