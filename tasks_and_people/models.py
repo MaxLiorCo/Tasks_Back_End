@@ -2,7 +2,8 @@ from django.db import models
 
 
 class Person(models.Model):
-    id = models.CharField(max_length=20, primary_key=True)  # I assume system id, not necessarily id of length 9
+    # We don't need an id field since it is automatically generated
+    #id = models.CharField(max_length=20, primary_key=True)  # I assume system id, not necessarily id of length 9
     name = models.CharField(max_length=20)
     email = models.CharField(max_length=30)
     favoriteProgrammingLanguage = models.CharField(max_length=20)
@@ -13,12 +14,16 @@ class Person(models.Model):
 
 
 class Task(models.Model):
-    id = models.CharField(max_length=20, primary_key=True)
+    # We don't need an id field since it is automatically generated
+    #id = models.CharField(max_length=20, primary_key=True)
+
     title = models.CharField(max_length=20, default='')
+
     # instead of ownerId, here we save reference to the whole object
     # in case of owners deletion it automatically deletes all his tasks
     # ForeignKey allows us to create Many-To-One relationships
     owner = models.ForeignKey(Person, on_delete=models.CASCADE)
+
     isDone = models.BooleanField(default=False)  # instead of status: active/done
     details = models.CharField(max_length=200)
     dueDate = models.DateField()
