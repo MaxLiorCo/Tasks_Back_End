@@ -7,7 +7,7 @@ class Person(models.Model):
     name = models.CharField(max_length=20)
     email = models.CharField(max_length=30)
     favoriteProgrammingLanguage = models.CharField(max_length=20)
-    activeTaskCount = models.IntegerField()
+    activeTaskCount = models.IntegerField(default=0)
 
     def __str__(self):
         return "Person-> id:%s, name:%s " % (self.id, self.name)
