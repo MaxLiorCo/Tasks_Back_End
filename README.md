@@ -15,7 +15,11 @@ Inside project root folder write:
    LINUX/IOS: $ python manage.py makemigrations
 5. WINDOWS...\> py manage.py migrat
    LINUX/IOS: $ python manage.py migrat
-6. WINDOWS...\> py manage.py createsuperuser
+   
+6. To access admin functionalities you must first create one:
+   WINDOWS...\> py manage.py createsuperuser
    LINUX/IOS: $ python manage.py createsuperuser
-7. WINDOWS...\> py manage.py runserver 9000
+   
+7. Run server:
+   WINDOWS...\> py manage.py runserver 9000
    LINUX/IOS: $ python manage.py runserver 9000
