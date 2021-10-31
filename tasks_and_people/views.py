@@ -1,5 +1,3 @@
-from django.db import IntegrityError
-from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 from tasks_and_people.models import Person, Task
 from django.core.serializers import serialize
@@ -154,7 +152,7 @@ def set_or_get_task_status(request, task_id):
     if request.method == "GET":
         try:
             t = Task.objects.get(id=task_id)
-            return HttpResponse("active" if t.isDone == False else "done", status=200)
+            return HttpResponse("active" if t.isDone is False else "done", status=200)
         except Task.DoesNotExist:
             return HttpResponse("Task with id: {0} does not exist.".format(task_id),
                                 status=404
