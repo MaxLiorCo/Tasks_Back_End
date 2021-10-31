@@ -1,0 +1,23 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1 style="text-align: center;"><span style="text-decoration: underline;">Django Backend Project</span></h1>
+<h1 style="text-align: center;"><span style="text-decoration: underline;">People &amp; Tasks</span></h1>
+<h2>Directions:</h2>
+<p>-For Admin functionalities <a href="http://localhost:9000/admin">Click Here</a></p>
+<p>-For API requests use <a href="https://reqbin.com/">This Site</a> with URL http://localhost:9000/api/ and the following options:</p>
+<p>
+    {% load static %}
+    <img src="{% static 'images/api.png' %}" width="555" height="714"/></p>
+<p>Person JSON POST/PATCH format:</p>
+<p>{"name": string, "email": string, "favoriteProgrammingLanguage" : string}</p>
+<p>Task JSON POST/PATCH format:</p>
+<p>{"title": string, "details": string, "dueDate": yyyy-mm-dd, "status": active/done }<code class="language-json"></code></p>
+
+</body>
+</html>
