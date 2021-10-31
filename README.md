@@ -9,8 +9,6 @@ HOW TO SETUP:
 3. Install Django
   WINDOWS...\> py -m pip install Django
   LINUX/IOS: $ python -m pip install Django
-  
-Inside project root folder write:
 4. WINDOWS...\> py manage.py makemigrations
    LINUX/IOS: $ python manage.py makemigrations
 5. WINDOWS...\> py manage.py migrat
