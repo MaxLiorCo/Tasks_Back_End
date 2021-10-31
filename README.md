@@ -3,7 +3,7 @@ Django python back-end project
 
 HOW TO SETUP:
 1. Install and extract project zip
-2. Verify that python is installed on your system
+2. Open prompt in root folder and verify that python is installed on your system
   WINDOWS: ...\> py
   LINUX/IOS: $ python
 3. Install Django
