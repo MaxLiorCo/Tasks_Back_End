@@ -6,6 +6,7 @@
 __pycache__
 db.sqlite3
 media
+/tasks_and_people/migrations/
 
 # Backup files #
 *.bak

@@ -16,6 +16,10 @@ Including another URLconf
 from django.urls import path
 from tasks_and_people import views
 
+"""
+URLs for the api functionality
+specifics are described in the main html file
+"""
 urlpatterns = [
     path('people/', views.get_or_create_user),
     path('people/<int:user_id>/', views.manage_users),

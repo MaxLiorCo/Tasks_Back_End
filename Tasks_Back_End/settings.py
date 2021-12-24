@@ -38,43 +38,41 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'tasks_and_people.apps.TasksAndPeopleConfig',
-    'corsheaders',
+    # 'corsheaders', # allows for Cross-origin resource sharing
 ]
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
+    #"corsheaders.middleware.CorsMiddleware", # required for cross-origin resource sharing
     "django.middleware.common.CommonMiddleware",
     'django.middleware.security.SecurityMiddleware',
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "corsheaders.middleware.CorsPostCsrfMiddleware",
+    #"django.middleware.csrf.CsrfViewMiddleware", # required for Csrf constraints satisfaction
+    #"corsheaders.middleware.CorsPostCsrfMiddleware", # required for Csrf & Cors
     'django.contrib.sessions.middleware.SessionMiddleware',
-    #'django.middleware.common.CommonMiddleware',   ALREADY ABOVE
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "https://reqbin.com",
-    "http://mbarsinai.com",
-    "http://localhost:9000",
-]
+# # Ips with whom resource sharing is acceptable
+# CORS_ALLOWED_ORIGINS = [
+#     "https://reqbin.com",
+#     "http://mbarsinai.com",
+#     "http://localhost:9000",
+# ]
+# # To satisfy Csrf constraints
+# CSRF_TRUSTED_ORIGINS = [
+#     "https://reqbin.com",
+#     "http://mbarsinai.com",
+#     "http://localhost:9000",
+# ]
+# CORS_REPLACE_HTTPS_REFERER = True
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://reqbin.com",
-    "http://mbarsinai.com",
-    "http://localhost:9000",
-]
-CORS_REPLACE_HTTPS_REFERER = True
-
-#ROOT_URLCONF = 'tasks_and_people.urls'
 ROOT_URLCONF = 'Tasks_Back_End.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

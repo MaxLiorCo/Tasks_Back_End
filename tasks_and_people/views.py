@@ -1,11 +1,20 @@
+from django.db import IntegrityError
 from django.views.decorators.http import require_http_methods
 from tasks_and_people.models import Person, Task
 from django.core.serializers import serialize
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+"""
+@require_http_methods : a pre requisite for the request method to enter the view
+@csrf_exempt: marks a view as being exempt from the protection ensured by the csrf middleware
+"""
 
-
+"""
+checks method type and operates accordingly
+GET /people/ : return an array of all Person Objects 
+POST /people/ : add a new Person Object to the database
+"""
 @require_http_methods(["GET", "POST"])
 @csrf_exempt
 def get_or_create_user(request):
@@ -25,6 +34,13 @@ def get_or_create_user(request):
                        favoriteProgrammingLanguage=data_received["favoriteProgrammingLanguage"],
                        )
             p.save()
+        except IntegrityError as e:
+            if 'UNIQUE constraint' in str(e.args):
+                return HttpResponse('The given "email" field already exists in another Person.',
+                                    status=400)
+            else:
+                return HttpResponse('IntegrityError but unrelated to "email" uniqueness.',
+                                    status=400)
         except (KeyError, json.decoder.JSONDecodeError):
             return HttpResponse('Required data fields are missing, data makes no sense, or data contains illegal '
                                 'values.',
@@ -34,7 +50,13 @@ def get_or_create_user(request):
         resp["x-Created-Id"] = p.id
         return resp
 
-
+"""
+checks method type and operates accordingly
+GET /people/:id : returns a person with the given id (if there is one)
+DELETE /people/:id : deletes a person with the given id (if there is one)
+PATCH /people/:id : update person fields with the given id (if there is one)
+return error if no such person exists
+"""
 @require_http_methods(["GET", "DELETE", "PATCH"])
 @csrf_exempt
 def manage_users(request, user_id):
@@ -70,7 +92,13 @@ def manage_users(request, user_id):
         p.save()
         return JsonResponse(serialize('json', [p]), safe=False, status=200)
 
-
+"""
+checks method type and operates accordingly
+GET /people/:id/tasks : Returns an array of tasks that the person with id id owns. The optional parameter status allows
+                        the caller to filter by task status.
+                        When status is not present, return an array of all tasks, regardless os their status.
+POST /people/ : Adds the new task, as described by the request body, to the person with the given id.
+"""
 @require_http_methods(["GET", "POST"])
 @csrf_exempt
 def person_task_details(request, user_id):
@@ -125,7 +153,11 @@ def person_task_details(request, user_id):
             resp["x-Created-Id"] = "{0}".format(t.pk)
             return resp
 
-
+"""
+checks method type and operates accordingly
+GET /tasks/:id/owner : return owner of the taks with the given id
+PUT /tasks/:id/owner : update the owner of the task
+"""
 @require_http_methods(["GET", "PUT"])
 @csrf_exempt
 def set_or_get_task_owner(request, task_id):
@@ -163,7 +195,11 @@ def set_or_get_task_owner(request, task_id):
                                 'values.',
                                 status=400)
 
-
+"""
+checks method type and operates accordingly
+GET /tasks/:id/status : return task status with the given id
+PUT /tasks/:id/status : update task status with the given id
+"""
 @require_http_methods(["GET", "PUT"])
 @csrf_exempt
 def set_or_get_task_status(request, task_id):
@@ -210,7 +246,13 @@ def set_or_get_task_status(request, task_id):
                                 'values.',
                                 status=400)
 
-
+"""
+checks method type and operates accordingly
+GET /tasks/:id : returns a task with the given id (if there is one)
+DELETE /tasks/:id : deletes a task with the given id (if there is one)
+PATCH /tasks/:id : update task fields with the given id (if there is one), fields are optional
+return error if no such task exists
+"""
 @require_http_methods(["GET", "DELETE", "PATCH"])
 @csrf_exempt
 def manage_tasks(request, task_id):
