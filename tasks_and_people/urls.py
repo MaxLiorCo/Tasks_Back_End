@@ -18,9 +18,9 @@ from tasks_and_people import views
 
 urlpatterns = [
     path('people/', views.get_or_create_user),
-    path('people/<int:user_id>', views.manage_users),
-    path('people/<int:user_id>/tasks', views.person_task_details),
-    path('tasks/<int:task_id>/owner', views.set_or_get_task_owner),
-    path('tasks/<int:task_id>/status', views.set_or_get_task_status),
-    path('tasks/<int:task_id>', views.manage_tasks),
+    path('people/<int:user_id>/', views.manage_users),
+    path('people/<int:user_id>/tasks/', views.person_task_details),
+    path('tasks/<int:task_id>/owner/', views.set_or_get_task_owner),
+    path('tasks/<int:task_id>/status/', views.set_or_get_task_status),
+    path('tasks/<int:task_id>/', views.manage_tasks),
 ]
