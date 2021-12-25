@@ -1,0 +1,34 @@
+@startuml
+allow_mixing
+scale 750 width
+package Program_Tasks_Back_End <<Folder>> {
+  class __init__
+  class asgi
+  class settings
+  class wsgi
+}
+package Application_tasks_back_end <<Folder>> {
+  class __init__
+  class admin
+  class apps 
+  class models {
+     Person : models.Model
+     Task : models.Model
+  } 
+  class tests
+  class views {
+    get_or_create_user(request)
+    manage_users(request, user_id)
+    person_task_details(request, user_id)
+    set_or_get_task_owner(request, task_id)
+    set_or_get_task_status(request, task_id)
+    manage_tasks(request, task_id)
+  }
+}
+package mysqlite3 <<Database>> {
+}
+Program_Tasks_Back_End.urls --> Application_tasks_back_end.urls : "127.0.0.1:9000/api/"
+Application_tasks_back_end.urls --> views : people/ \n people/<int:user_id> \n people/<int:user_id>/tasks/ \n tasks/<int:task_id>/owner/ \n tasks/<int:task_id>/status/ \n tasks/<int:task_id>/
+models <--> mysqlite3 : read/write
+models <--> views
+@enduml

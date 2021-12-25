@@ -38,34 +38,26 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'tasks_and_people.apps.TasksAndPeopleConfig',
-    # 'corsheaders', # allows for Cross-origin resource sharing
+    'corsheaders', # allows for Cross-origin resource sharing
 ]
 
 MIDDLEWARE = [
-    #"corsheaders.middleware.CorsMiddleware", # required for cross-origin resource sharing
-    "django.middleware.common.CommonMiddleware",
     'django.middleware.security.SecurityMiddleware',
-    #"django.middleware.csrf.CsrfViewMiddleware", # required for Csrf constraints satisfaction
-    #"corsheaders.middleware.CorsPostCsrfMiddleware", # required for Csrf & Cors
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-# # Ips with whom resource sharing is acceptable
-# CORS_ALLOWED_ORIGINS = [
-#     "https://reqbin.com",
-#     "http://mbarsinai.com",
-#     "http://localhost:9000",
-# ]
-# # To satisfy Csrf constraints
-# CSRF_TRUSTED_ORIGINS = [
-#     "https://reqbin.com",
-#     "http://mbarsinai.com",
-#     "http://localhost:9000",
-# ]
-# CORS_REPLACE_HTTPS_REFERER = True
+CORS_ALLOW_ALL_ORIGINS = True # If this is used then `CORS_ALLOWED_ORIGINS` will not have any effect
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    'https://mbarsinai.com',
+] # If this is used, then not need to use `CORS_ALLOW_ALL_ORIGINS = True`
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    'https://mbarsinai.com',
+]
 
 ROOT_URLCONF = 'Tasks_Back_End.urls'
 

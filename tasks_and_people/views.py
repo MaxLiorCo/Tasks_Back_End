@@ -5,18 +5,13 @@ from django.core.serializers import serialize
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-"""
-@require_http_methods : a pre requisite for the request method to enter the view
-@csrf_exempt: marks a view as being exempt from the protection ensured by the csrf middleware
-"""
 
 """
-checks method type and operates accordingly
-GET /people/ : return an array of all Person Objects 
-POST /people/ : add a new Person Object to the database
+@require_http_methods : a pre requisite for the request method to enter the view
 """
+
+
 @require_http_methods(["GET", "POST"])
-@csrf_exempt
 def get_or_create_user(request):
     """
     :return: on GET request - list of people in the database <br> on POST - headers of the location and id of the new person<br>code=201 - Person created successfully<br>code=400 - Required data fields are missing, data makes no sense, or data contains illegal values.
@@ -50,15 +45,8 @@ def get_or_create_user(request):
         resp["x-Created-Id"] = p.id
         return resp
 
-"""
-checks method type and operates accordingly
-GET /people/:id : returns a person with the given id (if there is one)
-DELETE /people/:id : deletes a person with the given id (if there is one)
-PATCH /people/:id : update person fields with the given id (if there is one)
-return error if no such person exists
-"""
+
 @require_http_methods(["GET", "DELETE", "PATCH"])
-@csrf_exempt
 def manage_users(request, user_id):
     """
     :param request: http request
@@ -66,7 +54,7 @@ def manage_users(request, user_id):
     :return: on GET - HttpResponse that contains the details on person with id=user_id<br>on DELETE - if succeeded, HttpResponse with a 'success message'<br>on PATCH - HttpResponse that contains the new details on person with user_id<br>code 200 - Person data provided.<br>code=404 - Requested person is not present<br>code=400 - provided wrong format
     """
     try:
-        p = Person.objects.get(id=user_id)
+            p = Person.objects.get(id=user_id)
     except Person.DoesNotExist:
         return HttpResponse("Person with id: {0} does not exist.".format(user_id),
                             status=404)
@@ -92,15 +80,8 @@ def manage_users(request, user_id):
         p.save()
         return JsonResponse(serialize('json', [p]), safe=False, status=200)
 
-"""
-checks method type and operates accordingly
-GET /people/:id/tasks : Returns an array of tasks that the person with id id owns. The optional parameter status allows
-                        the caller to filter by task status.
-                        When status is not present, return an array of all tasks, regardless os their status.
-POST /people/ : Adds the new task, as described by the request body, to the person with the given id.
-"""
+
 @require_http_methods(["GET", "POST"])
-@csrf_exempt
 def person_task_details(request, user_id):
     """
     :param request: http request
@@ -135,12 +116,12 @@ def person_task_details(request, user_id):
             p.save(update_fields=["activeTaskCount"])
         try:
             t = Task(
-                     title=json_body["title"],
-                     owner=p,
-                     isDone=is_done,
-                     details=json_body["details"],
-                     dueDate=json_body["dueDate"]
-                     )
+                title=json_body["title"],
+                owner=p,
+                isDone=is_done,
+                details=json_body["details"],
+                dueDate=json_body["dueDate"]
+            )
             t.save()
         except (KeyError, json.decoder.JSONDecodeError):
             return HttpResponse('Required data fields are missing, data makes no sense, or data contains illegal '
@@ -153,13 +134,8 @@ def person_task_details(request, user_id):
             resp["x-Created-Id"] = "{0}".format(t.pk)
             return resp
 
-"""
-checks method type and operates accordingly
-GET /tasks/:id/owner : return owner of the taks with the given id
-PUT /tasks/:id/owner : update the owner of the task
-"""
+
 @require_http_methods(["GET", "PUT"])
-@csrf_exempt
 def set_or_get_task_owner(request, task_id):
     """
     :param request: http request
@@ -195,13 +171,8 @@ def set_or_get_task_owner(request, task_id):
                                 'values.',
                                 status=400)
 
-"""
-checks method type and operates accordingly
-GET /tasks/:id/status : return task status with the given id
-PUT /tasks/:id/status : update task status with the given id
-"""
+
 @require_http_methods(["GET", "PUT"])
-@csrf_exempt
 def set_or_get_task_status(request, task_id):
     """
     :param request: http request
@@ -246,15 +217,8 @@ def set_or_get_task_status(request, task_id):
                                 'values.',
                                 status=400)
 
-"""
-checks method type and operates accordingly
-GET /tasks/:id : returns a task with the given id (if there is one)
-DELETE /tasks/:id : deletes a task with the given id (if there is one)
-PATCH /tasks/:id : update task fields with the given id (if there is one), fields are optional
-return error if no such task exists
-"""
+
 @require_http_methods(["GET", "DELETE", "PATCH"])
-@csrf_exempt
 def manage_tasks(request, task_id):
     """
     :param request: http request
