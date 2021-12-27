@@ -1,6 +1,6 @@
 
 from django.contrib import admin
-from .models import Person,Task
+from .models import Person, Task
 
 # Monitor the following models
 admin.site.register(Person)

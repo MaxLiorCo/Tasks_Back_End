@@ -6,6 +6,8 @@ Person class that manages the Person model interactions in the code and its tabl
 -We don't need an id field since it is automatically generated
 -Email must be unique
 """
+
+
 class Person(models.Model):
     name = models.CharField(max_length=20)
     email = models.CharField(max_length=30, unique=True)
@@ -15,6 +17,7 @@ class Person(models.Model):
     def __str__(self):
         return "Person-> id:%s, name:%s " % (self.id, self.name)
 
+
 """
 Task class that manages the Task model interactions in the code and its table in the database.
 -We don't need an id field since it is automatically generated
@@ -22,10 +25,12 @@ Task class that manages the Task model interactions in the code and its table in
  In case of owners deletion it automatically deletes all his of tasks
  ForeignKey allows us to create Many-To-One relationships
 """
+
+
 class Task(models.Model):
     title = models.CharField(max_length=20, default='')
     owner = models.ForeignKey(Person, on_delete=models.CASCADE)
-    isDone = models.BooleanField(default=False)  # instead of status: active/done
+    isDone = models.BooleanField(default=False)
     details = models.CharField(max_length=200)
     dueDate = models.DateField()
 

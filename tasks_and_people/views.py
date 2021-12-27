@@ -3,7 +3,6 @@ from django.views.decorators.http import require_http_methods
 from tasks_and_people.models import Person, Task
 from django.core.serializers import serialize
 from django.http import JsonResponse, HttpResponse
-from django.views.decorators.csrf import csrf_exempt
 import json
 
 """
@@ -41,8 +40,8 @@ def get_or_create_user(request):
                                 'values.',
                                 status=400)
         resp = HttpResponse('New person was created successfully.', status=201)
-        resp["Location"] = "http://127.0.0.1:9000/api/people/{0}".format(p.id)
-        resp["x-Created-Id"] = p.id
+        resp["Location"] = "http://127.0.0.1:9000/api/people/{0}".format(p.pk)
+        resp["x-Created-Id"] = p.pk
         return resp
 
 
@@ -54,7 +53,7 @@ def manage_users(request, user_id):
     :return: on GET - HttpResponse that contains the details on person with id=user_id<br>on DELETE - if succeeded, HttpResponse with a 'success message'<br>on PATCH - HttpResponse that contains the new details on person with user_id<br>code 200 - Person data provided.<br>code=404 - Requested person is not present<br>code=400 - provided wrong format
     """
     try:
-            p = Person.objects.get(id=user_id)
+        p = Person.objects.get(pk=user_id)
     except Person.DoesNotExist:
         return HttpResponse("Person with id: {0} does not exist.".format(user_id),
                             status=404)
@@ -89,7 +88,7 @@ def person_task_details(request, user_id):
     :return: on GET: returns a list of the tasks belong to person with user_id. If optional status field is specified, than all tasks that apply to the status are shown.<br> on POST: adds the new task, as described by the request body, to the person whose id equals id. If the status field is not specified in the request body, the server will default to marking the newly created task as active.<br>code=201: Task created and assigned successfully.<br> code=400: Required data fields are missing, data makes no sense, or data contains illegal values.<br> code=404: Requested person is not present<br>code=400 - provided wrong format
     """
     try:
-        p = Person.objects.get(id=user_id)
+        p = Person.objects.get(pk=user_id)
     except Person.DoesNotExist:
         return HttpResponse("Person with id: {0} does not exist.".format(user_id),
                             status=404
@@ -143,18 +142,18 @@ def set_or_get_task_owner(request, task_id):
     :return: on GET: id of the owner of the task.<br>on PUT: success message upon successful owner change<br>code=200 - id of the owner of the task.<br>code=404 - requested task is not present.<br>code=204 - task owner updated successfully<br>code=400 - provided wrong format
     """
     try:
-        t = Task.objects.get(id=task_id)
-        p = Person.objects.get(id=t.owner.id)
+        t = Task.objects.get(pk=task_id)
+        p = Person.objects.get(pk=t.owner.id)
     except Task.DoesNotExist:
         return HttpResponse("Task with id: {0} does not exist.".format(task_id),
                             status=404
                             )
     if request.method == "GET":
-        return HttpResponse("Owner's id: {0}".format(p.id))
+        return HttpResponse("Owner's id: {0}".format(p.pk))
     elif request.method == "PUT":
         try:
             json_body = json.loads(request.body.decode('utf-8'))
-            new_owner = Person.objects.get(id=json_body["id"])
+            new_owner = Person.objects.get(pk=json_body["id"])
             t.owner = new_owner
             new_owner.activeTaskCount = new_owner.activeTaskCount + 1 if not t.isDone else new_owner.activeTaskCount
             p.activeTaskCount = p.activeTaskCount - 1 if not t.isDone else p.activeTaskCount
@@ -181,7 +180,7 @@ def set_or_get_task_status(request, task_id):
     """
     if request.method == "GET":
         try:
-            t = Task.objects.get(id=task_id)
+            t = Task.objects.get(pk=task_id)
             return HttpResponse("active" if t.isDone is False else "done", status=200)
         except Task.DoesNotExist:
             return HttpResponse("Task with id: {0} does not exist.".format(task_id),
@@ -195,8 +194,8 @@ def set_or_get_task_status(request, task_id):
                 return HttpResponse("Value '{0}' is not a legal task status.".format(new_status),
                                     status=400
                                     )
-            t = Task.objects.get(id=task_id)
-            p = Person.objects.get(id=t.owner.id)
+            t = Task.objects.get(pk=task_id)
+            p = Person.objects.get(pk=t.owner.id)
             new_is_done = True if new_status == "done" else False
             # Safe check to make sure that the new value is different than the current one
             if new_is_done != t.isDone:
@@ -225,9 +224,10 @@ def manage_tasks(request, task_id):
     :param task_id: id of a task in the database
     :return: on GET: provide the details of the task whose id=task_id<br> on DELETE: remove task with id=task_id from the database<br> on PATCH: partial updates of task with id=task_id<br>code=200 - task found and provided/task updated successfully. Data contains updated task/task removed successfully.<br>code=404 - requested task is not present.<br>code=400 - provided wrong format
     """
+    global body_json_format
     try:
-        t = Task.objects.get(id=task_id)
-        p = Person.objects.get(id=t.owner.id)
+        t = Task.objects.get(pk=task_id)
+        p = Person.objects.get(pk=t.owner.id)
     except Task.DoesNotExist:
         return HttpResponse("A task with id: {0} does not exist.".format(task_id),
                             status=404
@@ -248,7 +248,7 @@ def manage_tasks(request, task_id):
             t.dueDate = body_json_format["dueDate"] if "dueDate" in body_json_format else t.dueDate
             # Handling owner change
             if "ownerId" in body_json_format:
-                new_owner = Person.objects.get(id=body_json_format["ownerId"])
+                new_owner = Person.objects.get(pk=body_json_format["ownerId"])
                 new_owner.activeTaskCount = new_owner.activeTaskCount + 1 if not t.isDone else new_owner.activeTaskCount
                 p.activeTaskCount = new_owner.activeTaskCount - 1 if not t.isDone else p.activeTaskCount
                 new_owner.save(update_fields=["activeTaskCount"])
