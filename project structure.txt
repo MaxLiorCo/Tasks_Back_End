@@ -25,12 +25,12 @@ package Application_tasks_back_end <<Folder>> {
     +manage_tasks(request, task_id)
   }
 }
-package mysqlite3 <<Database>> {
+package sqlite3 <<Database>> {
 }
 package browser <<Cloud>> {
 }
 
-Program_Tasks_Back_End.urls --> Application_tasks_back_end.urls : <color:blue>3\n <color:black>127.0.0.1:9000/api/
+Program_Tasks_Back_End.urls --> Application_tasks_back_end.urls : <color:blue>3\n <color:black><our_ip>:9000/api/
 Application_tasks_back_end.urls --> views : <color:blue>4\n people/ \n people/<int:user_id> \n people/<int:user_id>/tasks/ \n tasks/<int:task_id>/owner/ \n tasks/<int:task_id>/status/ \n tasks/<int:task_id>/
 models --> mysqlite3 : <color:blue>6\n read/write
 models <-- views : <color:blue>5

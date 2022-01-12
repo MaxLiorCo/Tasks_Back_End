@@ -19,3 +19,5 @@ HOW TO SETUP:
 7. Run server:
    WINDOWS...\> py manage.py runserver 9000
    LINUX/IOS: $ python manage.py runserver 9000
+   
+# Low level documentation can be found inside each function in views.py

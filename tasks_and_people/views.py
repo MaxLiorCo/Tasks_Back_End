@@ -23,18 +23,18 @@ def get_or_create_user(request):
         tmp_str = request.body.decode('utf-8')  # Basically converts "bytes" to "string"
         try:
             data_received = json.loads(tmp_str)  # Converts "string" to "json" object
-            p = Person(name=data_received["name"],
-                       email=data_received["email"],
-                       favoriteProgrammingLanguage=data_received["favoriteProgrammingLanguage"],
-                       )
-            p.save()
-        except IntegrityError as e:
-            if 'UNIQUE constraint' in str(e.args):
+            if not Person.objects.filter(email=data_received['email']).exists():
+                p = Person(name=data_received["name"],
+                           email=data_received["email"],
+                           favoriteProgrammingLanguage=data_received["favoriteProgrammingLanguage"],
+                           )
+                p.save()
+            else:
                 return HttpResponse('The given "email" field already exists in another Person.',
                                     status=400)
-            else:
-                return HttpResponse('IntegrityError but unrelated to "email" uniqueness.',
-                                    status=400)
+        except IntegrityError:
+            return HttpResponse('IntegrityError but unrelated to "email" uniqueness.',
+                                status=400)
         except (KeyError, json.decoder.JSONDecodeError):
             return HttpResponse('Required data fields are missing, data makes no sense, or data contains illegal '
                                 'values.',
@@ -189,7 +189,7 @@ def set_or_get_task_status(request, task_id):
     elif request.method == "PUT":
         try:
             json_body = json.loads(request.body.decode('utf-8'))
-            new_status = json_body["status"]
+            new_status = json_body
             if new_status != "active" and new_status != "done":
                 return HttpResponse("Value '{0}' is not a legal task status.".format(new_status),
                                     status=400
